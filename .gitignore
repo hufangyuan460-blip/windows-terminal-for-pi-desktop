@@ -1,0 +1,13 @@
+# The packaged plugin (.piplug) is built per release and uploaded to the plugin
+# center, so it is not source.
+/dist/
+
+# .NET build intermediates. Note that helper/bin/ is NOT ignored on purpose:
+# the self-contained pi-conpty-helper.exe lives there and is shipped inside the
+# .piplug, so a tag reproduces the published package byte for byte.
+helper/obj/
+**/obj/
+
+# OS / editor noise
+Thumbs.db
+desktop.ini

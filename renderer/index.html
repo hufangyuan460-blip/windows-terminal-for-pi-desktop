@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="pi-plugin-chrome" content="v2" />
+    <title>终端</title>
+    <link rel="stylesheet" href="vendor/xterm.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #181a1f;
+        --surface: #1f2228;
+        --surface-2: #23262d;
+        --fg: #e6e8ea;
+        --muted: color-mix(in oklab, #ffffff 55%, transparent);
+        --border: color-mix(in oklab, #ffffff 12%, transparent);
+        --accent: #7fb4ff;
+        --danger: #ff8b8b;
+        --ok: #8ad48a;
+        --warn: #e0b64a;
+        --term-bg: #14161a;
+      }
+      :root[data-base="light"] {
+        color-scheme: light;
+        --bg: #ffffff;
+        --surface: #f6f7f9;
+        --surface-2: #eceef2;
+        --fg: #1b1d21;
+        --muted: #5c626b;
+        --border: color-mix(in oklab, #1b1d21 12%, transparent);
+        --accent: #1f5fbf;
+        --danger: #b3261e;
+        --ok: #1f7a34;
+        --warn: #8a6100;
+        --term-bg: #fbfbfc;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        font: 13px/1.45 -apple-system, "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+      }
+
+      #app {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        padding-top: var(--pi-plugin-titlebar-height, 0px);
+      }
+
+      /* ---------- single control row ---------- */
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        flex: 0 0 auto;
+        padding: 4px 6px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .session {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 3px 6px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+      .session:hover:not(:disabled) { background: color-mix(in oklab, var(--fg) 8%, transparent); }
+      .session:disabled { cursor: default; opacity: 0.55; }
+      .session .session-name {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .session .caret {
+        flex: 0 0 auto;
+        width: 0;
+        height: 0;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-top: 5px solid var(--muted);
+      }
+      .session:disabled .caret { visibility: hidden; }
+
+      .dot {
+        flex: 0 0 auto;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--muted);
+      }
+      .dot[data-status="running"] { background: var(--ok); }
+      .dot[data-status="starting"] { background: var(--warn); }
+      .dot[data-status="exited"], .dot[data-status="error"] { background: var(--danger); }
+      .dot[data-status="idle"] { background: transparent; border: 1px solid var(--muted); }
+
+      .icon-btn {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 24px;
+        padding: 0;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .icon-btn:hover:not(:disabled) { background: color-mix(in oklab, var(--fg) 9%, transparent); }
+      .icon-btn:disabled { opacity: 0.4; cursor: default; }
+      .icon-btn[aria-expanded="true"] { background: color-mix(in oklab, var(--fg) 12%, transparent); }
+
+      button { font: inherit; color: inherit; }
+      button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+      /* ---------- stage ---------- */
+      #stage {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 0;
+        background: var(--term-bg);
+      }
+
+      .term-host {
+        position: absolute;
+        inset: 0;
+        padding: 6px 4px 6px 8px;
+        display: none;
+      }
+      .term-host[data-active="true"] { display: block; }
+
+      .empty {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-align: center;
+        color: var(--muted);
+        padding: 16px;
+        overflow-y: auto;
+      }
+      .empty h2 { margin: 0; font-size: 14px; color: var(--fg); font-weight: 560; }
+      .empty p { margin: 0; max-width: 40ch; overflow-wrap: anywhere; }
+
+      .banner {
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px 10px;
+        padding: 7px 9px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: color-mix(in oklab, var(--surface) 94%, transparent);
+        box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
+      }
+      .banner[hidden] { display: none; }
+      .banner .spacer { flex: 1 1 auto; }
+      .banner .title { font-weight: 560; }
+      .banner .msg { color: var(--muted); overflow-wrap: anywhere; }
+      .banner[data-kind="error"] { border-color: color-mix(in oklab, var(--danger) 55%, var(--border)); }
+      .banner[data-kind="error"] .title { color: var(--danger); }
+
+      /* ---------- popovers (session list, shell list, more, details, context menu) ---------- */
+      .popover {
+        position: fixed;
+        z-index: 30;
+        min-width: 176px;
+        max-width: min(320px, calc(100vw - 12px));
+        padding: 4px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        box-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+      }
+      .popover[hidden] { display: none; }
+      .pop-scroll {
+        max-height: min(60vh, 420px);
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      .pop-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 6px 6px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .pop-title .spacer { flex: 1 1 auto; }
+      .pop-sep {
+        height: 1px;
+        margin: 4px 2px;
+        background: var(--border);
+      }
+
+      .item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 5px 8px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+      }
+      .item:hover:not(:disabled) { background: color-mix(in oklab, var(--fg) 10%, transparent); }
+      .item:disabled { opacity: 0.45; cursor: default; }
+      .item[aria-checked="true"] { background: color-mix(in oklab, var(--accent) 16%, transparent); }
+      .item .grow {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .item .sub {
+        flex: 0 0 auto;
+        max-width: 45%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .item .check { flex: 0 0 auto; color: var(--accent); }
+
+      .detail-row { display: flex; gap: 8px; padding: 3px 6px; }
+      .detail-key { flex: 0 0 68px; color: var(--muted); }
+      .detail-val { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+      .detail-note {
+        padding: 2px 6px 6px;
+        color: var(--muted);
+        font-size: 11px;
+        overflow-wrap: anywhere;
+      }
+      .pop-actions { display: flex; align-items: center; gap: 6px; padding: 4px 4px 2px; }
+      .pop-actions button { flex: 1 1 auto; }
+      .ghost-btn {
+        padding: 3px 8px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: transparent;
+      }
+      .ghost-btn:hover { background: color-mix(in oklab, var(--fg) 9%, transparent); }
+      .primary-btn {
+        padding: 4px 10px;
+        border: 1px solid color-mix(in oklab, var(--accent) 45%, var(--border));
+        border-radius: 6px;
+        background: color-mix(in oklab, var(--accent) 20%, var(--surface-2));
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="bar" role="toolbar" aria-label="终端控制栏">
+        <button type="button" id="session" class="session" aria-haspopup="menu" aria-expanded="false">
+          <span class="dot" id="session-dot" data-status="idle" aria-hidden="true"></span>
+          <span class="session-name" id="session-name"></span>
+          <span class="caret" aria-hidden="true"></span>
+        </button>
+        <button type="button" id="new" class="icon-btn" aria-label="新建终端" title="新建终端 (Ctrl+Shift+T)">＋</button>
+        <button type="button" id="new-shell" class="icon-btn" aria-haspopup="menu" aria-expanded="false" aria-label="选择 Shell 并新建" title="选择 Shell 并新建">▾</button>
+        <button type="button" id="more" class="icon-btn" aria-haspopup="menu" aria-expanded="false" aria-label="更多操作" title="更多操作">⋯</button>
+      </div>
+
+      <div id="stage">
+        <div class="empty" id="empty" hidden>
+          <h2 id="empty-title"></h2>
+          <p id="empty-hint"></p>
+          <button id="empty-new" class="primary-btn" type="button"></button>
+        </div>
+        <div class="banner" id="banner" hidden data-kind="notice">
+          <span class="title" id="banner-title"></span>
+          <span class="msg" id="banner-msg"></span>
+          <span class="spacer"></span>
+          <button id="banner-action" class="ghost-btn" type="button" hidden></button>
+          <button id="banner-close" class="ghost-btn" type="button"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="popover" id="pop-sessions" role="menu" aria-label="终端列表" hidden>
+      <div class="pop-scroll" id="pop-sessions-list"></div>
+    </div>
+
+    <div class="popover" id="pop-shells" role="menu" aria-label="新建终端" hidden></div>
+
+    <div class="popover" id="pop-more" role="menu" aria-label="更多操作" hidden>
+      <button type="button" class="item" role="menuitem" data-action="clear"><span class="grow" id="more-clear"></span></button>
+      <button type="button" class="item" role="menuitem" data-action="restart"><span class="grow" id="more-restart"></span></button>
+      <button type="button" class="item" role="menuitem" data-action="details"><span class="grow" id="more-details"></span></button>
+      <div class="pop-sep"></div>
+      <button type="button" class="item" role="menuitem" data-action="close"><span class="grow" id="more-close"></span></button>
+    </div>
+
+    <div class="popover" id="pop-details" aria-label="终端详情" hidden>
+      <div class="pop-title">
+        <span id="details-title"></span>
+        <span class="spacer"></span>
+        <button type="button" class="ghost-btn" id="details-close"></button>
+      </div>
+      <div id="details-body"></div>
+    </div>
+
+    <div class="popover" id="menu" role="menu" aria-label="终端操作" hidden>
+      <button type="button" class="item" role="menuitem" data-action="copy"><span class="grow" id="menu-copy"></span></button>
+      <button type="button" class="item" role="menuitem" data-action="paste"><span class="grow" id="menu-paste"></span></button>
+      <div class="pop-sep"></div>
+      <button type="button" class="item" role="menuitem" data-action="clear"><span class="grow" id="menu-clear"></span></button>
+      <button type="button" class="item" role="menuitem" data-action="restart"><span class="grow" id="menu-restart"></span></button>
+      <button type="button" class="item" role="menuitem" data-action="details"><span class="grow" id="menu-details"></span></button>
+      <div class="pop-sep"></div>
+      <button type="button" class="item" role="menuitem" data-action="close"><span class="grow" id="menu-close"></span></button>
+    </div>
+
+    <script src="vendor/xterm.js"></script>
+    <script src="vendor/addon-fit.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
