@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Windows Terminal — PI-Desktop plugin entry point.
+ * Windows ConPTY Terminal — PI-Desktop plugin entry point.
  *
  * This file owns the terminal sessions. The panel is a view: the host bridges
  * panel calls into `onPanelInvoke` below, and terminal output travels back over

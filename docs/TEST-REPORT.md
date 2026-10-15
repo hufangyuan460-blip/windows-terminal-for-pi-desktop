@@ -174,8 +174,8 @@ iframe 不持有焦点）都按未验证处理，见第 4 节。
 
 | 产物 | 大小 | SHA-256 |
 | --- | --- | --- |
-| `helper/bin/win-x64/pi-conpty-helper.exe` | 10,513,000 | `FAF12F31EA206F138477DF7E0F1E62C4CFF3536EE54DCFBA65A502120B0DEE42` |
-| `dist/io.github.hufangyuan460-blip.windows-terminal-1.1.1.piplug`（44 个文件） | 约 11.1 MB（随文档更新微变） | 不内嵌（自引用）：打包后用 `Get-FileHash dist\*.piplug -Algorithm SHA256` 核对 |
+| `helper/bin/win-x64/pi-conpty-helper.exe` | 10,513,096 | `45593ED7A744E07A717B3E2938D4FDEDDC91F15964BE2FAD3A5AA203A0D97E63` |
+| `dist/io.github.hufangyuan460-blip.windows-terminal-1.1.2.piplug`（44 个文件） | 约 11.1 MB（随文档更新微变） | 不内嵌（自引用）：打包后用 `Get-FileHash dist\*.piplug -Algorithm SHA256` 核对 |
 
 `PluginCheck`：通过（44 个文件），1 条预期警告 —— `net.domains` 声明了 `127.0.0.1`。
 原因见 [ARCHITECTURE.md §2](ARCHITECTURE.md)：面板需要访问插件自己的回环事件流，
@@ -189,4 +189,6 @@ powershell -ExecutionPolicy Bypass -File tools/run-tests.ps1             # 全�
 # 然后用 PluginCheck / PluginPack 校验并打包（或经由宿主提供的插件工具链）
 ```
 
+- 辅助程序构建**可复现**：同样输入下连续两次 `build-helper.ps1 -Force` 得到相同的 SHA-256（已实测），
+  因此上面的哈希可以当作"这份源码 + 这份工具链"的指纹。
 - **arm64 构建**：未提供发布配置。

@@ -83,6 +83,17 @@ Write-Host ("helper      : {0} ({1:N2} MiB)" -f $targetExe, ($size / 1MB))
 Write-Host "sha256      : $hash"
 
 Write-Host 'self-test...'
-& $targetExe --selftest 2>&1 | ForEach-Object { Write-Host $_ }
-if ($LASTEXITCODE -ne 0) { throw "the helper self-test failed with exit code $LASTEXITCODE" }
+# The helper writes diagnostics to stderr on purpose, and this script runs with
+# $ErrorActionPreference = 'Stop': without the temporary switch, PowerShell turns
+# that normal stderr output into a terminating error and the build "fails" on a
+# healthy self-test.
+$selfTestPreference = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+try {
+  & $targetExe --selftest 2>&1 | ForEach-Object { Write-Host $_ }
+  $selfTestCode = $LASTEXITCODE
+} finally {
+  $ErrorActionPreference = $selfTestPreference
+}
+if ($selfTestCode -ne 0) { throw "the helper self-test failed with exit code $selfTestCode" }
 Write-Host 'build ok'

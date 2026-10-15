@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    PI-Desktop Windows Terminal — ConPTY helper.
+    Windows ConPTY Terminal — ConPTY helper.
 
     Published as a self-contained, single-file, trimmed win-x64 executable so
     the plugin ships one .exe and the user needs no .NET runtime, no Node
@@ -36,7 +36,7 @@
     <Version>1.0.0</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
-    <Company>PI-Desktop Windows Terminal plugin</Company>
+    <Company>Windows ConPTY Terminal plugin</Company>
     <Product>PI-Desktop ConPTY helper</Product>
     <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
     <NoWarn>$(NoWarn);CA1416</NoWarn>

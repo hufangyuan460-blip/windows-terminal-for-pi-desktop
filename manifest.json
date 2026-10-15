@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "id": "io.github.hufangyuan460-blip.windows-terminal",
-  "name": "Windows Terminal",
-  "version": "1.1.1",
+  "name": "Windows ConPTY Terminal",
+  "version": "1.1.2",
   "description": "在工作面板中使用真正的 Windows 交互式终端：ConPTY 伪终端、PowerShell 7 / Windows PowerShell 5.1 / cmd、多标签、ANSI 颜色、中文输入输出、复制粘贴与中断。A real Windows interactive terminal in the work panel: ConPTY pseudoconsole, PowerShell 7 / Windows PowerShell 5.1 / cmd, tabs, ANSI colours, CJK input and output, copy/paste and interrupt.",
   "i18n": {
     "en": {
-      "name": "Windows Terminal",
+      "name": "Windows ConPTY Terminal",
       "description": "A real Windows interactive terminal in the work panel: one ConPTY pseudoconsole per tab, PowerShell 7 / Windows PowerShell 5.1 / cmd, ANSI colours, CJK input and output, copy/paste, Ctrl+C, resize and reliable process-tree cleanup. Nothing you type is sent to the AI.",
       "safetyNotes": "The plugin runs its own ConPTY helper (a self-contained .NET executable shipped inside the plugin) and starts the shell you pick in the project directory. That shell is a real interactive terminal: anything you type runs with your user rights, exactly as in a normal console window. Terminal content is never given to the AI. Output travels to the panel over a loopback-only HTTP event feed on 127.0.0.1 with a fresh 32-byte token per plugin start; every request must present it and requests without it are refused. The token is only handed to this plugin's own panel over the PI-Desktop plugin bridge and is never written to a log or a file. The plugin has no unauthenticated endpoint and no endpoint that runs commands: input and resize travel through the host bridge into the pseudoconsole. The loopback host 127.0.0.1 is declared in net.domains so the panel may reach it; declaring it is not a general network grant. Shells are killed through a Windows job object when a tab closes, the plugin unloads, or the plugin process dies, so no shell survives the terminal that started it."
     },
     "zh-CN": {
-      "name": "Windows 终端",
+      "name": "Windows 终端（ConPTY）",
       "description": "在工作面板中使用真正的 Windows 交互式终端：每个标签一个 ConPTY 伪终端，支持 PowerShell 7 / Windows PowerShell 5.1 / cmd、ANSI 颜色、中文输入输出、复制粘贴、Ctrl+C、窗口缩放以及可靠的进程树清理。输入的内容不会交给 AI。",
       "safetyNotes": "插件自行运行 ConPTY 辅助程序（随插件打包的自包含 .NET 可执行文件），并在项目目录中启动你选择的 Shell。那是一个真正的交互式终端：你输入的命令以你的用户身份执行，和普通控制台窗口完全一样。终端内容不会交给 AI。输出通过仅绑定 127.0.0.1 的回环 HTTP 事件流送到面板，每次插件启动都会生成新的 32 字节 token，每个请求都必须携带它，未携带的请求一律拒绝。token 只通过 PI-Desktop 的插件桥交给本插件自己的面板，绝不写入日志或文件。插件没有任何无需认证的入口，也没有执行命令的入口：输入与缩放都通过宿主桥送进伪终端。net.domains 声明了 127.0.0.1，只是让面板能够访问本机回环服务，并非通用网络授权。标签关闭、插件卸载或插件进程异常退出时，会通过 Windows Job Object 结束整棵 Shell 进程树，不会留下孤儿进程。"
     }
   },
-  "author": "PI-Desktop Windows Terminal plugin",
+  "author": "hufangyuan460-blip",
   "license": "MIT",
   "main": "main.js",
   "contributes": {
