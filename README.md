@@ -1,4 +1,4 @@
-# Windows ConPTY Terminal — PI-Desktop 插件
+# Windows 终端（ConPTY）· Windows ConPTY Terminal — PI-Desktop 插件
 
 在 PI-Desktop 的**工作面板**中提供真正的 Windows 交互式终端：xterm.js 前端 + 自带的
 ConPTY 辅助程序（C# / .NET 8，自包含单文件）。你输入的命令以你的用户身份在真实控制台里
@@ -26,7 +26,7 @@ ConPTY 辅助程序（C# / .NET 8，自包含单文件）。你输入的命令�
 ## 安装
 
 1. 打开 PI-Desktop → 插件页面 → 从文件安装。
-2. 选择 `dist/io.github.hufangyuan460-blip.windows-terminal-1.1.3.piplug`。
+2. 选择 `dist/io.github.hufangyuan460-blip.windows-terminal-1.1.4.piplug`。
 3. 确认权限：`ui.view`（工作面板视图）、`clipboard.read` / `clipboard.write`（复制粘贴）。
    可选网络范围只有 `127.0.0.1` —— 面板要访问插件自己的回环事件流。
 
