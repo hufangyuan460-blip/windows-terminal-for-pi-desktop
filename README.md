@@ -26,7 +26,7 @@ ConPTY 辅助程序（C# / .NET 8，自包含单文件）。你输入的命令�
 ## 安装
 
 1. 打开 PI-Desktop → 插件页面 → 从文件安装。
-2. 选择 `dist/io.github.hufangyuan460-blip.windows-terminal-1.1.0.piplug`。
+2. 选择 `dist/io.github.hufangyuan460-blip.windows-terminal-1.1.1.piplug`。
 3. 确认权限：`ui.view`（工作面板视图）、`clipboard.read` / `clipboard.write`（复制粘贴）。
    可选网络范围只有 `127.0.0.1` —— 面板要访问插件自己的回环事件流。
 

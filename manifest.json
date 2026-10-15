@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.hufangyuan460-blip.windows-terminal",
   "name": "Windows Terminal",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "在工作面板中使用真正的 Windows 交互式终端：ConPTY 伪终端、PowerShell 7 / Windows PowerShell 5.1 / cmd、多标签、ANSI 颜色、中文输入输出、复制粘贴与中断。A real Windows interactive terminal in the work panel: ConPTY pseudoconsole, PowerShell 7 / Windows PowerShell 5.1 / cmd, tabs, ANSI colours, CJK input and output, copy/paste and interrupt.",
   "i18n": {
     "en": {

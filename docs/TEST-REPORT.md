@@ -175,7 +175,7 @@ iframe 不持有焦点）都按未验证处理，见第 4 节。
 | 产物 | 大小 | SHA-256 |
 | --- | --- | --- |
 | `helper/bin/win-x64/pi-conpty-helper.exe` | 10,513,000 | `FAF12F31EA206F138477DF7E0F1E62C4CFF3536EE54DCFBA65A502120B0DEE42` |
-| `dist/io.github.hufangyuan460-blip.windows-terminal-1.1.0.piplug`（44 个文件） | 约 11.1 MB（随文档更新微变） | 不内嵌（自引用）：打包后用 `Get-FileHash dist\*.piplug -Algorithm SHA256` 核对 |
+| `dist/io.github.hufangyuan460-blip.windows-terminal-1.1.1.piplug`（44 个文件） | 约 11.1 MB（随文档更新微变） | 不内嵌（自引用）：打包后用 `Get-FileHash dist\*.piplug -Algorithm SHA256` 核对 |
 
 `PluginCheck`：通过（44 个文件），1 条预期警告 —— `net.domains` 声明了 `127.0.0.1`。
 原因见 [ARCHITECTURE.md §2](ARCHITECTURE.md)：面板需要访问插件自己的回环事件流，
