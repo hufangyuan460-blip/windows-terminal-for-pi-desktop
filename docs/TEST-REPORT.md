@@ -54,9 +54,13 @@ Ctrl+C 中断长命令后提示符恢复、退出码透传（`exit 7`）、关�
 重启换新 Shell 且旧 Shell 消失、剪贴板通道读写、标签上限拒绝（`TOO_MANY_TABS`）、
 卸载后回环监听消失且 Shell 全部结束。
 
-`tests/vendor.test.cjs`（9）— 钉死 6 个 vendor 文件的 SHA-256；两个脚本各自必须能被当作经典脚本解析、
-不含 U+FFFD、不含 CJK 字符（即不是错误代码页重写的产物）；xterm.js 必须保留 UMD 全局导出与
-`e.Terminal=d` 赋值；`index.html` 必须先加载 vendor 再加载 `app.js`。
+`tests/vendor.test.cjs`（8）— 钉死 6 个 vendor 文件的 SHA-256（取自浏览器验证过的副本，任何字节变化
+都会失败）；拒绝 U+FFFD 与 CJK 字符（错误代码页重写的产物）；用**静态加载**验证 xterm.js 能在真实
+JS 引擎里解析并导出 `Terminal`；`index.html` 必须先加载 vendor 再加载 `app.js`。
+
+`tests/package-hygiene.test.cjs`（1）— 静态扫描随包分发的每个脚本，禁止动态执行与动态模块加载
+（VM 求值、函数构造器、字符串求值、运行时拼出来的模块路径）。插件中心的审计会阻断这类包，而它们
+很容易从测试与调试脚本里溜进来；这条守卫让下次上传之前就能发现。
 
 `tests/panel-ui.test.cjs`（9）— 面板结构不变量：`app.js` 里每个 `getElementById` 都必须在
 `index.html` 里存在（防止两侧漂移）、单行控制栏与三个图标按钮及其 `aria-label`/`title`、常驻标签栏与
@@ -156,6 +160,13 @@ iframe 不持有焦点）都按未验证处理，见第 4 节。
    行），并用上游原文替换了不完整的 `xterm.LICENSE`。防回归：`tests/vendor.test.cjs`（9 项）钉死
    哈希、逐个解析、并拒绝 CJK 字符与替换字符。
 
+10. **插件中心的审计挡住了两处"动态执行"**：`tests/vendor.test.cjs` 用 VM 的 `Script` 校验脚本能否
+    解析，`tools/smoke-main.cjs` 用变量拼出的路径去加载插件入口。审计对这两者分别给出 SEC003
+    「Node VM dynamic execution」与「dynamic module loading」，包被直接拒绝上传。
+    修法：解析校验改成**静态加载** xterm.js（在真实 JS 引擎里能加载并导出 `Terminal`，比解析更硬），
+    调试脚本改成写死的相对路径；并新增 `tests/package-hygiene.test.cjs`，静态扫描全部随包脚本，
+    让"动态执行 / 运行时拼模块路径"这类写法在本地就被挡住。
+
 ## 6. 尚未完成 / 真实阻塞
 
 - **面板人工验证**：需要用户在应用里打开「终端」视图确认一次（渲染、输入、中文、resize、
@@ -175,9 +186,9 @@ iframe 不持有焦点）都按未验证处理，见第 4 节。
 | 产物 | 大小 | SHA-256 |
 | --- | --- | --- |
 | `helper/bin/win-x64/pi-conpty-helper.exe` | 10,513,096 | `45593ED7A744E07A717B3E2938D4FDEDDC91F15964BE2FAD3A5AA203A0D97E63` |
-| `dist/io.github.hufangyuan460-blip.windows-terminal-1.1.2.piplug`（44 个文件） | 约 11.1 MB（随文档更新微变） | 不内嵌（自引用）：打包后用 `Get-FileHash dist\*.piplug -Algorithm SHA256` 核对 |
+| `dist/io.github.hufangyuan460-blip.windows-terminal-1.1.3.piplug`（45 个文件） | 约 11.1 MB（随文档更新微变） | 不内嵌（自引用）：打包后用 `Get-FileHash dist\*.piplug -Algorithm SHA256` 核对 |
 
-`PluginCheck`：通过（44 个文件），1 条预期警告 —— `net.domains` 声明了 `127.0.0.1`。
+`PluginCheck`：通过（45 个文件），1 条预期警告 —— `net.domains` 声明了 `127.0.0.1`。
 原因见 [ARCHITECTURE.md §2](ARCHITECTURE.md)：面板需要访问插件自己的回环事件流，
 而插件未申请 `net.fetch`。
 

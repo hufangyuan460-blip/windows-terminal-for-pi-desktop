@@ -7,7 +7,6 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const PLUGIN = path.join(__dirname, '..', 'main.js');
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-term-smoke-'));
 const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-term-proj-'));
 
@@ -25,7 +24,9 @@ function step(message) {
 
 (async () => {
   step('requiring plugin');
-  const plugin = require(PLUGIN);
+  // Static path on purpose: the plugin center's audit treats a computed require
+  // argument as dynamic module loading.
+  const plugin = require('../main.js');
   step('onLoad');
   await plugin.onLoad();
   step('state');

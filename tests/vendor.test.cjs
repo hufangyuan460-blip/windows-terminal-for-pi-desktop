@@ -8,7 +8,15 @@
  * wrote them back as UTF-8. The page then failed to parse the script, so
  * `window.Terminal` never existed and the panel could not create a terminal at
  * all ("window.Terminal is not a constructor") while it still looked healthy.
- * A parse check plus a pinned hash makes that failure impossible to miss.
+ *
+ * The pinned hashes are the main guard: they were taken from copies verified in
+ * a real browser, so any byte that changes (mojibake, truncation, the wrong
+ * file) fails here. On top of that xterm.js is loaded with a static require,
+ * which proves it parses and exports in a real JS engine — deliberately without
+ * evaluating code dynamically, because the plugin center's audit blocks `vm`,
+ * `new Function`, `eval` and computed require paths inside a package.
+ * addon-fit.js cannot be loaded that way (its UMD wrapper passes `self`, which
+ * Node does not define), so its hash plus the structural checks cover it.
  */
 
 const test = require('node:test');
@@ -16,7 +24,6 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '..');
 const vendorDir = path.join(root, 'renderer', 'vendor');
@@ -44,15 +51,14 @@ test('every vendored file still has the hash we pinned', () => {
   }
 });
 
-for (const name of SCRIPTS) {
-  test(`${name} parses as a classic script`, () => {
-    const source = read(name).toString('utf8');
-    assert.doesNotThrow(
-      () => new vm.Script(source, { filename: name }),
-      `${name} must parse in a browser; a text-mode rewrite (wrong code page) breaks this`,
-    );
-  });
+test('xterm.js parses in a real JS engine and exports Terminal', () => {
+  // A static require of a file we ship; not dynamic code execution. The plugin
+  // center's audit rejects `vm`, `new Function`, `eval` and computed paths.
+  const xterm = require('../renderer/vendor/xterm.js');
+  assert.equal(typeof xterm.Terminal, 'function', 'xterm.js must load and export Terminal');
+});
 
+for (const name of SCRIPTS) {
   test(`${name} carries no encoding damage`, () => {
     const source = read(name).toString('utf8');
     assert.ok(!source.includes('\uFFFD'), `${name} contains U+FFFD replacement characters`);

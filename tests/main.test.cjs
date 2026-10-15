@@ -79,7 +79,7 @@ async function withPlugin(run) {
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-terminal-data-'));
   const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-terminal-project-'));
   const host = installHostStub(dataDir, workspacePath);
-  const plugin = require(path.join(PLUGIN_DIR, 'main.js'));
+  const plugin = require('../main.js');
   await plugin.onLoad();
   try {
     await run({ plugin, host, dataDir, workspacePath });
@@ -206,7 +206,7 @@ test('unload stops the loopback listener and kills every shell', { skip: !availa
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-terminal-data-'));
   const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-terminal-project-'));
   installHostStub(dataDir, workspacePath);
-  const plugin = require(path.join(PLUGIN_DIR, 'main.js'));
+  const plugin = require('../main.js');
   await plugin.onLoad();
   const created = await plugin.onPanelInvoke('create', { shellId: 'cmd' });
   const pid = await waitUntil(async () => {
